@@ -1,19 +1,9 @@
 FROM debian:jessie
+# note: we use jessie instead of wheezy because our deps are easier to get here
 
-# see http://nginx.org/en/pgp_keys.html
-RUN gpg --keyserver pgp.mit.edu --recv-key \
-	A09CD539B8BB8CBE96E82BDFABD4D3B3F5806B4D \
-	4C2C85E705DC730833990C38A9376139A524C53E \
-	B0F4253373F8F6F510D42178520A9993A1C052F8 \
-	65506C02EFC250F1B7A3D694ECF0E90B2C172083 \
-	7338973069ED3F443F4D37DFA64FD5B17ADB39A8 \
-	6E067260B83DCF2CA93C566F518509686C7E5E82 \
-	573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62
-
-ENV NGINX_VERSION 1.7.4
-
-# All our runtime and build dependencies, in alphabetical order (to ease maintenance)
-RUN runDeps=" \
+# runtime dependencies
+# (packages are listed alphabetically to ease maintenence)
+RUN apt-get update && apt-get install -y --no-install-recommends \
 		fontconfig-config \
 		fonts-dejavu-core \
 		geoip-database \
@@ -53,8 +43,22 @@ RUN runDeps=" \
 		sgml-base \
 		ucf \
 		xml-core \
-	"; \
-	buildDeps=" \
+	&& rm -rf /var/lib/apt/lists/*
+
+# see http://nginx.org/en/pgp_keys.html
+RUN gpg --keyserver pgp.mit.edu --recv-key \
+	A09CD539B8BB8CBE96E82BDFABD4D3B3F5806B4D \
+	4C2C85E705DC730833990C38A9376139A524C53E \
+	B0F4253373F8F6F510D42178520A9993A1C052F8 \
+	65506C02EFC250F1B7A3D694ECF0E90B2C172083 \
+	7338973069ED3F443F4D37DFA64FD5B17ADB39A8 \
+	6E067260B83DCF2CA93C566F518509686C7E5E82 \
+	573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62
+
+ENV NGINX_VERSION 1.7.4
+
+# All our runtime and build dependencies, in alphabetical order (to ease maintenance)
+RUN buildDeps=" \
 		ca-certificates \
 		curl \
 		gcc \
@@ -96,10 +100,7 @@ RUN runDeps=" \
 		xtrans-dev \
 		zlib1g-dev \
 	"; \
-	apt-get update && apt-get install -y --no-install-recommends \
-		$buildDeps\
-		$runDeps \
-	&& rm -rf /var/lib/apt/lists/* \
+	apt-get update && apt-get install -y --no-install-recommends $buildDeps && rm -rf /var/lib/apt/lists/* \
 	&& curl -SL "http://nginx.org/download/nginx-$NGINX_VERSION.tar.gz" -o nginx.tar.gz \
 	&& curl -SL "http://nginx.org/download/nginx-$NGINX_VERSION.tar.gz.asc" -o nginx.tar.gz.asc \
 	&& gpg --verify nginx.tar.gz.asc \
@@ -135,18 +136,18 @@ RUN runDeps=" \
 	&& make install \
 	&& cd / \
 	&& rm -r /usr/src/nginx \
-	&& ln -vs ../nginx/sbin/nginx /usr/local/sbin/ \
 	&& chown -R www-data:www-data /usr/local/nginx \
 	&& { \
-			echo; \
-			echo '# stay in the foreground so Docker has a process to track'; \
-			echo 'daemon off;'; \
-		} >> /etc/nginx.conf \
-	&& apt-get purge -y \
-		$buildDeps \
-	&& apt-get autoremove -y
+		echo; \
+		echo '# stay in the foreground so Docker has a process to track'; \
+		echo 'daemon off;'; \
+	} >> /etc/nginx.conf \
+	&& apt-get purge -y --auto-remove $buildDeps
 
+ENV PATH /usr/local/nginx/sbin:$PATH
 WORKDIR /usr/local/nginx/html
+
+# TODO USER www-data
 
 EXPOSE 80
 CMD ["nginx"]
