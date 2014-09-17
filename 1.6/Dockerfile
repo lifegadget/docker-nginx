@@ -137,13 +137,14 @@ RUN buildDeps=" \
 	&& cd / \
 	&& rm -r /usr/src/nginx 
 # Modify nginx.conf file for Docker use	
-RUN sed -i '0,/server {/s/server {/include \/nginx\/conf.d\/*.conf;\n    server {/' /nginx/conf/nginx.conf \
-	&& chown -R www-data:www-data /usr/local/nginx \
+RUN chown -R www-data:www-data /usr/local/nginx \
+	&& chown -R www-data:www-data /nginx \
 	&& { \
 		echo; \
 		echo '# stay in the foreground so Docker has a process to track'; \
 		echo 'daemon off;'; \
 	} >> /nginx/conf/nginx.conf \
+	&& sed -i '0,/server {/s/server {/include \/nginx\/conf.d\/*.conf;\n    server {/' /nginx/conf/nginx.conf \
 	&& apt-get purge -y --auto-remove $buildDeps
 
 ENV PATH /usr/local/nginx/sbin:$PATH

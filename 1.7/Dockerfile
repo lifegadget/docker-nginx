@@ -135,13 +135,16 @@ RUN buildDeps=" \
 	&& make -j"$(nproc)" \
 	&& make install \
 	&& cd / \
-	&& rm -r /usr/src/nginx \
-	&& chown -R www-data:www-data /usr/local/nginx \
+	&& rm -r /usr/src/nginx 
+# Modify nginx.conf file for Docker use	
+RUN chown -R www-data:www-data /usr/local/nginx \
+	&& chown -R www-data:www-data /nginx \
 	&& { \
 		echo; \
 		echo '# stay in the foreground so Docker has a process to track'; \
 		echo 'daemon off;'; \
-	} >> /etc/nginx.conf \
+	} >> /nginx/conf/nginx.conf \
+	&& sed -i '0,/server {/s/server {/include \/nginx\/conf.d\/*.conf;\n    server {/' /nginx/conf/nginx.conf \
 	&& apt-get purge -y --auto-remove $buildDeps
 
 ENV PATH /usr/local/nginx/sbin:$PATH
@@ -149,5 +152,15 @@ WORKDIR /usr/local/nginx/html
 
 # TODO USER www-data
 
+# Create functionally explicit sharepoint for additional site config
+RUN mkdir -p /usr/local/nginx/conf.d \
+	&& mkdir -p /nginx \
+	&& ln -s /usr/local/nginx/conf.d /nginx/conf.d
+VOLUME ["/nginx/conf.d"]
+# Do the same for gaining access to core config file
+RUN mkdir -p /nginx/conf \
+	&& ln -s /etc/nginx.conf /nginx/conf/nginx.conf
+VOLUME ["/nginx/conf"]
+
 EXPOSE 80
-CMD ["nginx"]
+ENTRYPOINT ["nginx"]
