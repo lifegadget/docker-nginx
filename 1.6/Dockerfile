@@ -161,4 +161,4 @@ VOLUME ["/nginx/conf.d"]
 VOLUME ["/nginx/conf"]
 
 EXPOSE 80
-CMD ["nginx"]
+ENTRYPOINT ["nginx"]

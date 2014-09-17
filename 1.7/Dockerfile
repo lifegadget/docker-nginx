@@ -112,7 +112,7 @@ RUN buildDeps=" \
 		--user=www-data \
 		--group=www-data \
 		--prefix=/usr/local/nginx \
-		--conf-path=/etc/nginx.conf \
+		--conf-path=/nginx/conf/nginx.conf \
 		--http-log-path=/proc/self/fd/1 \
 		--error-log-path=/proc/self/fd/2 \
 		--with-http_addition_module \
@@ -148,7 +148,6 @@ RUN chown -R www-data:www-data /usr/local/nginx \
 	&& apt-get purge -y --auto-remove $buildDeps
 
 ENV PATH /usr/local/nginx/sbin:$PATH
-WORKDIR /usr/local/nginx/html
 
 # TODO USER www-data
 
@@ -157,9 +156,8 @@ RUN mkdir -p /usr/local/nginx/conf.d \
 	&& mkdir -p /nginx \
 	&& ln -s /usr/local/nginx/conf.d /nginx/conf.d
 VOLUME ["/nginx/conf.d"]
-# Do the same for gaining access to core config file
-RUN mkdir -p /nginx/conf \
-	&& ln -s /etc/nginx.conf /nginx/conf/nginx.conf
+# Offer main configuration directory too; if share accepted host responsible 
+# for config otherwise default is applied
 VOLUME ["/nginx/conf"]
 
 EXPOSE 80
