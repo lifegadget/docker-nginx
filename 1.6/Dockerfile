@@ -112,7 +112,7 @@ RUN buildDeps=" \
 		--user=www-data \
 		--group=www-data \
 		--prefix=/usr/local/nginx \
-		--conf-path=/etc/nginx.conf \
+		--conf-path=/nginx/conf/nginx.conf \
 		--http-log-path=/proc/self/fd/1 \
 		--error-log-path=/proc/self/fd/2 \
 		--with-http_addition_module \
@@ -135,19 +135,29 @@ RUN buildDeps=" \
 	&& make -j"$(nproc)" \
 	&& make install \
 	&& cd / \
-	&& rm -r /usr/src/nginx \
+	&& rm -r /usr/src/nginx 
+# Modify nginx.conf file for Docker use	
+RUN sed -i '0,/server {/s/server {/include \/nginx\/conf.d\/*.conf;\n    server {/' /nginx/conf/nginx.conf \
 	&& chown -R www-data:www-data /usr/local/nginx \
 	&& { \
 		echo; \
 		echo '# stay in the foreground so Docker has a process to track'; \
 		echo 'daemon off;'; \
-	} >> /etc/nginx.conf \
+	} >> /nginx/conf/nginx.conf \
 	&& apt-get purge -y --auto-remove $buildDeps
 
 ENV PATH /usr/local/nginx/sbin:$PATH
-WORKDIR /usr/local/nginx/html
 
 # TODO USER www-data
+
+# Create functionally explicit sharepoint for additional site config
+RUN mkdir -p /usr/local/nginx/conf.d \
+	&& mkdir -p /nginx \
+	&& ln -s /usr/local/nginx/conf.d /nginx/conf.d
+VOLUME ["/nginx/conf.d"]
+# Offer main configuration directory too; if share accepted host responsible 
+# for config otherwise default is applied
+VOLUME ["/nginx/conf"]
 
 EXPOSE 80
 CMD ["nginx"]
