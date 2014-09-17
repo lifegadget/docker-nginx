@@ -150,4 +150,4 @@ WORKDIR /usr/local/nginx/html
 # TODO USER www-data
 
 EXPOSE 80
-CMD ["nginx"]
+ENTRYPOINT ["nginx"]
