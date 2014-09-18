@@ -135,7 +135,8 @@ RUN buildDeps=" \
 	&& make -j"$(nproc)" \
 	&& make install \
 	&& cd / \
-	&& rm -r /usr/src/nginx 
+	&& rm -r /usr/src/nginx \
+	&& apt-get purge -y --auto-remove $buildDeps
 # Modify nginx.conf file for Docker use	
 RUN chown -R www-data:www-data /usr/local/nginx \
 	&& chown -R www-data:www-data /nginx \
@@ -144,8 +145,7 @@ RUN chown -R www-data:www-data /usr/local/nginx \
 		echo '# stay in the foreground so Docker has a process to track'; \
 		echo 'daemon off;'; \
 	} >> /nginx/conf/nginx.conf \
-	&& sed -i '0,/server {/s/server {/include \/nginx\/conf.d\/*.conf;\n    server {/' /nginx/conf/nginx.conf \
-	&& apt-get purge -y --auto-remove $buildDeps
+	&& sed -i '0,/server {/s/server {/include \/nginx\/conf.d\/*.conf;\n    server {/' /nginx/conf/nginx.conf 
 
 ENV PATH /usr/local/nginx/sbin:$PATH
 
