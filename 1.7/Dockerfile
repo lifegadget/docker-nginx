@@ -112,7 +112,7 @@ RUN buildDeps=" \
 		--user=www-data \
 		--group=www-data \
 		--prefix=/usr/local/nginx \
-		--conf-path=/nginx/conf/nginx.conf \
+		--conf-path=/app/conf/nginx.conf \
 		--http-log-path=/proc/self/fd/1 \
 		--error-log-path=/proc/self/fd/2 \
 		--with-http_addition_module \
@@ -139,26 +139,29 @@ RUN buildDeps=" \
 	&& apt-get purge -y --auto-remove $buildDeps
 # Modify nginx.conf file for Docker use	
 RUN chown -R www-data:www-data /usr/local/nginx \
-	&& chown -R www-data:www-data /nginx \
+	&& chown -R www-data:www-data /app \
 	&& { \
 		echo; \
 		echo '# stay in the foreground so Docker has a process to track'; \
 		echo 'daemon off;'; \
 	} >> /nginx/conf/nginx.conf \
-	&& sed -i '0,/server {/s/server {/include \/nginx\/conf.d\/*.conf;\n    server {/' /nginx/conf/nginx.conf 
+	&& sed -i '0,/server {/s/server {/include \/nginx\/conf.d\/*.conf;\n    server {/' /app/conf/nginx.conf 
 
 ENV PATH /usr/local/nginx/sbin:$PATH
 
 # TODO USER www-data
 
-# Create functionally explicit sharepoint for additional site config
+# Create symlinks so that volume shares can use compact and consistent pattern
 RUN mkdir -p /usr/local/nginx/conf.d \
 	&& mkdir -p /nginx \
-	&& ln -s /usr/local/nginx/conf.d /nginx/conf.d
-VOLUME ["/nginx/conf.d"]
-# Offer main configuration directory too; if share accepted host responsible 
-# for config otherwise default is applied
-VOLUME ["/nginx/conf"]
+	&& ln -s /usr/local/nginx/conf.d /app/conf.d \
+	&& ln -s /usr/local/nginx/html /app/html
+# Provide host ability to add server directives to configuration
+VOLUME ["/app/conf.d"]
+# Provide host ability to take over all aspects of configuration
+VOLUME ["/app/conf"]
+# The "root" directory for all content
+VOLUME ["/app/html"]
 
 EXPOSE 80
 ENTRYPOINT ["nginx"]
