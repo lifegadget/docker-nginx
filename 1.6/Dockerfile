@@ -155,6 +155,7 @@ ENV PATH /usr/local/nginx/sbin:$PATH
 RUN mkdir -p /usr/local/nginx/conf.d \
 	&& mkdir -p /nginx \
 	&& ln -s /usr/local/nginx/conf.d /app/conf.d \
+	&& ln -s /usr/local/nginx/sockets /app/sockets \
 	&& ln -s /usr/local/nginx/html /app/html
 # Provide host ability to add server directives to configuration
 VOLUME ["/app/conf.d"]
@@ -162,6 +163,8 @@ VOLUME ["/app/conf.d"]
 VOLUME ["/app/conf"]
 # The "root" directory for all content
 VOLUME ["/app/html"]
+# The directory for all Unix socket files, allowing host to pass socket files as a mutex point (rather than just TCP port)
+VOLUME ["/app/sockets"]
 
 EXPOSE 80
 ENTRYPOINT ["nginx"]
