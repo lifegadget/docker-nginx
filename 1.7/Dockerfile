@@ -138,7 +138,10 @@ RUN buildDeps=" \
 	&& rm -r /usr/src/nginx \
 	&& apt-get purge -y --auto-remove $buildDeps
 # Modify nginx.conf file for Docker use	
-RUN chown -R www-data:www-data /usr/local/nginx \
+RUN mkdir -p /app \
+	&& mkdir -p /app/logs \
+	&& mkdir -p /usr/local/nginx/conf.d \
+	&& chown -R www-data:www-data /usr/local/nginx \
 	&& chown -R www-data:www-data /app \
 	&& { \
 		echo; \
@@ -147,24 +150,33 @@ RUN chown -R www-data:www-data /usr/local/nginx \
 	} >> /app/conf/nginx.conf \
 	&& sed -i '0,/server {/s/server {/include \/nginx\/conf.d\/*.conf;\n    server {/' /app/conf/nginx.conf 
 
-ENV PATH /usr/local/nginx/sbin:$PATH
+# Add nginx to PATH (both immediately and as part of any future shell attachments)
+ENV PATH /usr/local/nginx/sbin:$PATH 
+RUN { \
+		echo; \
+		echo '# Adding nginx to PATH'; \
+		echo 'export PATH=/usr/local/nginx/sbin:$PATH'; \
+	} >> /etc/bash.bashrc
 
 # TODO USER www-data
 
 # Create symlinks so that volume shares can use compact and consistent pattern
-RUN mkdir -p /usr/local/nginx/conf.d \
-	&& mkdir -p /nginx \
-	&& ln -s /usr/local/nginx/conf.d /app/conf.d \
+RUN ln -s /usr/local/nginx/conf.d /app/conf.d \
 	&& ln -s /usr/local/nginx/sockets /app/sockets \
+	&& ln -s /usr/local/nginx/logs /app/logs \
 	&& ln -s /usr/local/nginx/html /app/html
 # Provide host ability to add server directives to configuration
 VOLUME ["/app/conf.d"]
 # Provide host ability to take over all aspects of configuration
+# >	Note: when a user overrides the default config directory is it typical that they only really only want to manipulate
+# 		  the `nginx.conf` file but currently they will need to provide all default configuration files
 VOLUME ["/app/conf"]
 # The "root" directory for all content
 VOLUME ["/app/html"]
 # The directory for all Unix socket files, allowing host to pass socket files as a mutex point (rather than just TCP port)
 VOLUME ["/app/sockets"]
+# Allow host to attach to log file directory
+VOLUME ["/app/logs"]
 
 EXPOSE 80
 ENTRYPOINT ["nginx"]
