@@ -148,7 +148,7 @@ RUN mkdir -p /app \
 		echo '# stay in the foreground so Docker has a process to track'; \
 		echo 'daemon off;'; \
 	} >> /app/conf/nginx.conf \
-	&& sed -i '0,/server {/s/server {/include \/nginx\/conf.d\/*.conf;\n    server {/' /app/conf/nginx.conf 
+	&& sed -i '0,/server {/s/server {/include \/nginx\/conf.d\/*.conf;\n    server {/' /app/conf/nginx.conf 	
 
 # Add nginx to PATH (both immediately and as part of any future shell attachments)
 ENV PATH /usr/local/nginx/sbin:$PATH 
@@ -156,6 +156,16 @@ RUN { \
 		echo; \
 		echo '# Adding nginx to PATH'; \
 		echo 'export PATH=/usr/local/nginx/sbin:$PATH'; \
+	} >> /etc/bash.bashrc
+# Add conveniences to Bash shell when working within the container
+ADD https://raw.githubusercontent.com/lifegadget/bashrc/master/snippets/history.sh /etc/bash.history
+ADD https://raw.githubusercontent.com/lifegadget/bashrc/master/snippets/color.sh /etc/bash.color
+ADD https://raw.githubusercontent.com/lifegadget/bashrc/master/snippets/shortcuts.sh /etc/bash.shortcuts
+RUN { \
+		echo ""; \
+		echo 'source /etc/bash.history'; \
+		echo 'source /etc/bash.color'; \
+		echo 'source /etc/bash.shortcuts'; \
 	} >> /etc/bash.bashrc
 
 # TODO USER www-data
