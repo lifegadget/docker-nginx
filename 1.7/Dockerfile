@@ -80,7 +80,6 @@ RUN buildDeps=" \
 		libpthread-stubs0-dev \
 		libsm-dev \
 		libssl-dev \
-		libssl-dev \
 		libtiff5-dev \
 		libvpx-dev \
 		libx11-dev \
