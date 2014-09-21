@@ -163,7 +163,7 @@ ADD https://raw.githubusercontent.com/lifegadget/bashrc/master/snippets/color.sh
 ADD https://raw.githubusercontent.com/lifegadget/bashrc/master/snippets/shortcuts.sh /etc/bash.shortcuts
 RUN { \
 		echo ""; \
-		echo 'source /etc/bash.history'; \
+		echo 'source /etc/bash.history'; \ 
 		echo 'source /etc/bash.color'; \
 		echo 'source /etc/bash.shortcuts'; \
 	} >> /etc/bash.bashrc
