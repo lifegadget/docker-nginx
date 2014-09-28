@@ -43,7 +43,16 @@ This is meant as a way to provide the Nginx infrastructure easily and yet with f
 
 ## Versions ##
 
-The branches in this repository represent the major branches of Nginx ... so all 1.6.x versions will be on the `1.6` branch and each minor version will have a tag based label. Right now the only two versions supported are 1.6.1 and 1.7.4 but the idea is to keep this current as time marches on. Feel free to PR an update if we're not keeping up.
+For every major branch of Nginx (e.g., 1.6.x, 1.7.x, etc.) there will be a branch for the various minor versions and you can track at the branch level to always get the latest version of the branch you're on. If you want to be more explicit the major and minor version numbers are tagged in git and made available as tags in Docker too. So far what have is:
+
+- `1.6`
+	- `1.6.1`
+	- `1.6.2`
+- `1.7`
+	- `1.7.4`
+	- `1.7.5`
+
+Feel free to PR an update if we're not keeping up.
 
 
 ## History ##
