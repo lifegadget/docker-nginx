@@ -80,7 +80,6 @@ RUN buildDeps=" \
 		libpthread-stubs0-dev \
 		libsm-dev \
 		libssl-dev \
-		libssl-dev \
 		libtiff5-dev \
 		libvpx-dev \
 		libx11-dev \
@@ -100,7 +99,8 @@ RUN buildDeps=" \
 		xtrans-dev \
 		zlib1g-dev \
 	"; \
-	apt-get update && apt-get install -y --no-install-recommends $buildDeps && rm -rf /var/lib/apt/lists/* \
+	apt-get update && apt-get install -y --no-install-recommends vim \
+	&& apt-get install -y --no-install-recommends $buildDeps && rm -rf /var/lib/apt/lists/* \
 	&& curl -SL "http://nginx.org/download/nginx-$NGINX_VERSION.tar.gz" -o nginx.tar.gz \
 	&& curl -SL "http://nginx.org/download/nginx-$NGINX_VERSION.tar.gz.asc" -o nginx.tar.gz.asc \
 	&& gpg --verify nginx.tar.gz.asc \
@@ -112,7 +112,7 @@ RUN buildDeps=" \
 		--user=www-data \
 		--group=www-data \
 		--prefix=/usr/local/nginx \
-		--conf-path=/etc/nginx.conf \
+		--conf-path=/app/conf/nginx.conf \
 		--http-log-path=/proc/self/fd/1 \
 		--error-log-path=/proc/self/fd/2 \
 		--with-http_addition_module \
@@ -136,18 +136,62 @@ RUN buildDeps=" \
 	&& make install \
 	&& cd / \
 	&& rm -r /usr/src/nginx \
+	&& apt-get purge -y --auto-remove $buildDeps
+# Modify nginx.conf file for Docker use	
+RUN mkdir -p /app \
+	&& mkdir -p /app/content \
+	&& mkdir -p /app/logs \
+	&& mkdir -p /usr/local/nginx/conf.d \
 	&& chown -R www-data:www-data /usr/local/nginx \
+	&& chown -R www-data:www-data /app \
 	&& { \
 		echo; \
 		echo '# stay in the foreground so Docker has a process to track'; \
 		echo 'daemon off;'; \
-	} >> /etc/nginx.conf \
-	&& apt-get purge -y --auto-remove $buildDeps
+	} >> /app/conf/nginx.conf \
+	&& sed -i '0,/server {/s/server {/include \/nginx\/conf.d\/*.conf;\n    server {/' /app/conf/nginx.conf \
+	&& mv /app/conf/nginx.conf /app/conf/nginx.conf.original 
+COPY resources/nginx.conf /app/conf/nginx.conf
+COPY resources/default-server.conf /app/conf.d/default-server.conf
 
-ENV PATH /usr/local/nginx/sbin:$PATH
-WORKDIR /usr/local/nginx/html
+# Add nginx to PATH (both immediately and as part of any future shell attachments)
+ENV PATH /usr/local/nginx/sbin:$PATH 
+RUN { \
+		echo; \
+		echo '# Adding nginx to PATH'; \
+		echo 'export PATH=/usr/local/nginx/sbin:$PATH'; \
+	} >> /etc/bash.bashrc
+# Add conveniences to Bash shell when working within the container
+ADD https://raw.githubusercontent.com/lifegadget/bashrc/master/snippets/history.sh /etc/bash.history
+ADD https://raw.githubusercontent.com/lifegadget/bashrc/master/snippets/color.sh /etc/bash.color
+ADD https://raw.githubusercontent.com/lifegadget/bashrc/master/snippets/shortcuts.sh /etc/bash.shortcuts
+RUN { \
+		echo ""; \
+		echo 'source /etc/bash.history'; \ 
+		echo 'source /etc/bash.color'; \
+		echo 'source /etc/bash.shortcuts'; \
+	} >> /etc/bash.bashrc
 
 # TODO USER www-data
 
+# Create symlinks so that volume shares can use compact and consistent pattern
+RUN ln -s /usr/local/nginx/conf.d conf.d \
+	&& ln -s /usr/local/nginx/sockets sockets \
+	&& ln -s /usr/local/nginx/logs logs \
+	&& echo "<h1>lifegadget/docker-nginx</h1><br/><h2>Docker base installation</h2>" > /app/content/index.html \
+	&& chown -R www-data:www-data /app
+# Provide host ability to add server directives to configuration
+VOLUME ["/app/conf.d"]
+# Provide host ability to take over all aspects of configuration
+# >	Note: when a user overrides the default config directory is it typical that they only really only want to manipulate
+# 		  the `nginx.conf` file but currently they will need to provide all default configuration files
+VOLUME ["/app/conf"]
+# The "root" directory for all content
+VOLUME ["/app/content"]
+# The directory for all Unix socket files, allowing host to pass socket files as a mutex point (rather than just TCP port)
+VOLUME ["/app/sockets"]
+# Allow host to attach to log file directory
+VOLUME ["/app/logs"]
+
 EXPOSE 80
-CMD ["nginx"]
+ENTRYPOINT ["nginx"]
