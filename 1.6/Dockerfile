@@ -138,6 +138,7 @@ RUN buildDeps=" \
 	&& apt-get purge -y --auto-remove $buildDeps
 # Modify nginx.conf file for Docker use	
 RUN mkdir -p /app \
+	&& mkdir -p /app/content \
 	&& mkdir -p /app/logs \
 	&& mkdir -p /usr/local/nginx/conf.d \
 	&& chown -R www-data:www-data /usr/local/nginx \
@@ -147,7 +148,10 @@ RUN mkdir -p /app \
 		echo '# stay in the foreground so Docker has a process to track'; \
 		echo 'daemon off;'; \
 	} >> /app/conf/nginx.conf \
-	&& sed -i '0,/server {/s/server {/include \/nginx\/conf.d\/*.conf;\n    server {/' /app/conf/nginx.conf 
+	&& sed -i '0,/server {/s/server {/include \/nginx\/conf.d\/*.conf;\n    server {/' /app/conf/nginx.conf \
+	&& mv /app/conf/nginx.conf /app/conf/nginx.conf.original 
+COPY resources/nginx.conf /app/conf/nginx.conf
+COPY resources/default-server.conf /app/conf.d/default-server.conf
 
 # Add nginx to PATH (both immediately and as part of any future shell attachments)
 ENV PATH /usr/local/nginx/sbin:$PATH 
@@ -162,7 +166,7 @@ ADD https://raw.githubusercontent.com/lifegadget/bashrc/master/snippets/color.sh
 ADD https://raw.githubusercontent.com/lifegadget/bashrc/master/snippets/shortcuts.sh /etc/bash.shortcuts
 RUN { \
 		echo ""; \
-		echo 'source /etc/bash.history'; \
+		echo 'source /etc/bash.history'; \ 
 		echo 'source /etc/bash.color'; \
 		echo 'source /etc/bash.shortcuts'; \
 	} >> /etc/bash.bashrc
@@ -170,10 +174,11 @@ RUN { \
 # TODO USER www-data
 
 # Create symlinks so that volume shares can use compact and consistent pattern
-RUN ln -s /usr/local/nginx/conf.d /app/conf.d \
-	&& ln -s /usr/local/nginx/sockets /app/sockets \
-	&& ln -s /usr/local/nginx/logs /app/logs \
-	&& ln -s /usr/local/nginx/html /app/html
+RUN ln -s /usr/local/nginx/conf.d conf.d \
+	&& ln -s /usr/local/nginx/sockets sockets \
+	&& ln -s /usr/local/nginx/logs logs \
+	&& echo "<h1>lifegadget/docker-nginx</h1><br/><h2>Docker base installation</h2>" > /app/content/index.html \
+	&& chown -R www-data:www-data /app
 # Provide host ability to add server directives to configuration
 VOLUME ["/app/conf.d"]
 # Provide host ability to take over all aspects of configuration
@@ -181,7 +186,7 @@ VOLUME ["/app/conf.d"]
 # 		  the `nginx.conf` file but currently they will need to provide all default configuration files
 VOLUME ["/app/conf"]
 # The "root" directory for all content
-VOLUME ["/app/html"]
+VOLUME ["/app/content"]
 # The directory for all Unix socket files, allowing host to pass socket files as a mutex point (rather than just TCP port)
 VOLUME ["/app/sockets"]
 # Allow host to attach to log file directory
