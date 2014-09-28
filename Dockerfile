@@ -55,7 +55,7 @@ RUN gpg --keyserver pgp.mit.edu --recv-key \
 	6E067260B83DCF2CA93C566F518509686C7E5E82 \
 	573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62
 
-ENV NGINX_VERSION 1.6.1
+ENV NGINX_VERSION 1.7.4
 
 # All our runtime and build dependencies, in alphabetical order (to ease maintenance)
 RUN buildDeps=" \
