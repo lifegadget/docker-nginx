@@ -13,8 +13,8 @@ This is meant as a way to provide the Nginx infrastructure easily and yet with f
 
 	This will get you up and running with a [default server configuration](https://github.com/lifegadget/docker-nginx/blob/master/resources/nginx.conf) and pointing to default content. Not very useful but a way to see it working in conjunction with your PHP/FPM stack. To see a basic static page just point your browser to `http://localhost`. If you are using PHP then the following resource is available:
 
-	- `/fpm` - this should show that you have proper integration to your php/fpm service by executing the `index.php` in your PHP/FPM content's root. If you are using the default configuration of the **lifegadget/docker-php** docker container then you'll get back the familiar output of PHP's `phpinfo()`.
-		> Note: the default config of **lifegadget/docker-php** also provides `/fpm/status` as a path to the FPM status page
+	- `/fpm/` - this should show that you have proper integration to your php/fpm service by executing the `index.php` in your PHP/FPM content's root. If you are using the default configuration of the **lifegadget/docker-php** docker container then you'll get back the familiar output of PHP's `phpinfo()`.
+	- `/status` - if your FPM configuration has `pm.status_path` set to "status" then the default mapping should work and you'll see the FPM status page. If you add the parameter "full" you'll get a more complete view. This will work out-of-the-box if you're using lifegadget/docker-php.
 
 - **Advanced usage:**
 
@@ -40,3 +40,29 @@ This is meant as a way to provide the Nginx infrastructure easily and yet with f
 		-v /container/conf.d:/app/conf.d \
 		-v /container/logs:/app/logs
 	````
+
+## Versions ##
+
+The branches in this repository represent the major branches of Nginx ... so all 1.6.x versions will be on the `1.6` branch and each minor version will have a tag based label. Right now the only two versions supported are 1.6.1 and 1.7.4 but the idea is to keep this current as time marches on. Feel free to PR an update if we're not keeping up.
+
+
+## History ##
+
+This was originally a fork of the *semi-official* NGINX image but that image has been shutdown in favour of the PPA-based docker official image. Since then we've been working on getting a sensible container up for folks who want to leverage FPM. The ideas and structures in this container are consistent with the other ones in our current Docker stack: 
+
+- lifegadget/docker-php
+- lifegadget/docker-couchbase
+
+## License ##
+
+This Dockerfile is free to use and is covered under the MIT license. 
+
+The MIT License (MIT)
+
+Copyright © 2014 LifeGadget Ltd, http://lifegadget.co
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

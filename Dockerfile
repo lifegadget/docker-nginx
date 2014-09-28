@@ -99,7 +99,8 @@ RUN buildDeps=" \
 		xtrans-dev \
 		zlib1g-dev \
 	"; \
-	apt-get update && apt-get install -y --no-install-recommends $buildDeps && rm -rf /var/lib/apt/lists/* \
+	apt-get update && apt-get install -y --no-install-recommends vim \
+	&& apt-get install -y --no-install-recommends $buildDeps && rm -rf /var/lib/apt/lists/* \
 	&& curl -SL "http://nginx.org/download/nginx-$NGINX_VERSION.tar.gz" -o nginx.tar.gz \
 	&& curl -SL "http://nginx.org/download/nginx-$NGINX_VERSION.tar.gz.asc" -o nginx.tar.gz.asc \
 	&& gpg --verify nginx.tar.gz.asc \
