@@ -9,7 +9,7 @@ This is meant as a way to provide the Nginx infrastructure easily and yet with f
 
 - **Basic usage:**
 	
-		sudo docker run -d lifegadget/nginx -p 80:80 --link PHP:PHP
+		sudo docker run -d lifegadget/docker-nginx -p 80:80 --link PHP:PHP
 
 	This will get you up and running with a [default server configuration](https://github.com/lifegadget/docker-nginx/blob/master/resources/nginx.conf) and pointing to default content. Not very useful but a way to see it working in conjunction with your PHP/FPM stack. To see a basic static page just point your browser to `http://localhost`. If you are using PHP then the following resource is available:
 
@@ -35,7 +35,7 @@ This is meant as a way to provide the Nginx infrastructure easily and yet with f
 	Then you would run the docker container with:
 
 	````bash
-	sudo docker run -d lifegadget/nginx -p 80:80 --link PHP:PHP \
+	sudo docker run -d lifegadget/docker-nginx -p 80:80 --link PHP:PHP \
 		-v /container/content:/app/content \
 		-v /container/conf.d:/app/conf.d \
 		-v /container/logs:/app/logs
