@@ -139,7 +139,8 @@ RUN buildDeps=" \
 	&& apt-get purge -y --auto-remove $buildDeps
 # Modify nginx.conf file for Docker use	
 RUN mkdir -p /app \
-	&& mkdir -p /app/content \
+	&& mkdir -p /storage \
+	&& ln -s /storage /app/content \
 	&& mkdir -p /app/logs \
 	&& mkdir -p /usr/local/nginx/conf.d \
 	&& chown -R www-data:www-data /usr/local/nginx \
@@ -178,7 +179,7 @@ RUN { \
 RUN ln -s /usr/local/nginx/conf.d conf.d \
 	&& ln -s /usr/local/nginx/sockets sockets \
 	&& ln -s /usr/local/nginx/logs logs \
-	&& echo "<h1>lifegadget/docker-nginx</h1><br/><h2>Docker base installation</h2>" > /app/content/index.html \
+	&& echo "<h1>lifegadget/docker-nginx</h1><br/><h2>Docker base installation</h2>" > /storage/index.html \
 	&& chown -R www-data:www-data /app
 # Provide host ability to add server directives to configuration
 VOLUME ["/app/conf.d"]
