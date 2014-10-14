@@ -184,7 +184,7 @@ RUN ln -s /usr/local/nginx/conf.d conf.d \
 	
 # Lumberjack
 RUN apt-get update \
-	&& apt-get install -yqq wget rsyslog
+	&& apt-get install -yqq wget 
 ENV LUMBERJACK_VERSION 0.3.1
 RUN	wget --no-check-certificate -O/tmp/lumberjack_${LUMBERJACK_VERSION}_amd64.deb https://github.com/lifegadget/lumberjack-builder/raw/master/resources/lumberjack_${LUMBERJACK_VERSION}_amd64.deb \
 	&& dpkg -i /tmp/lumberjack_${LUMBERJACK_VERSION}_amd64.deb \

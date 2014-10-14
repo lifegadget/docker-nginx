@@ -1,5 +1,20 @@
 #!/bin/bash
 
-service rsyslog start
+function logIt() {
+	logFile="/app/logs/docker-nginx.log"
+	timestamp=$( date )
+	if [ -z "$2" ];then
+		severity="INFO"
+	else
+		severity="$2"
+	fi
+	hostname=`hostname`
+	facility_label="user-level"
+	facility=1
+	echo "{ \"timestamp\": \"$timestamp\", \"host\": \"${hostname}\", \"server_software\": [], \"file\": \"$logFile\", \"facility_label\": \"${facility_label}\", \"severity\":\"$severity\", \"message\": \"$1\" }" >> $logFile
+}
+
+# service rsyslog start
 /opt/lumberjack/bin/lumberjack -config /app/conf/logstash-forwarder.conf &
+logIt "Lumberjack listener on nginx started"
 exec /usr/local/nginx/sbin/nginx 
