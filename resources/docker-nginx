@@ -1,0 +1,5 @@
+#!/bin/bash
+
+service rsyslog start
+/opt/lumberjack/bin/lumberjack -config /app/conf/logstash-forwarder.conf &
+exec /usr/local/nginx/sbin/nginx 

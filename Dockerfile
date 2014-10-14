@@ -181,6 +181,18 @@ RUN ln -s /usr/local/nginx/conf.d conf.d \
 	&& ln -s /usr/local/nginx/logs logs \
 	&& echo "<h1>lifegadget/docker-nginx</h1><br/><h2>Docker base installation</h2>" > /storage/index.html \
 	&& chown -R www-data:www-data /app
+	
+# Lumberjack
+RUN apt-get update \
+	&& apt-get install -yqq wget rsyslog
+ENV LUMBERJACK_VERSION 0.3.1
+RUN	wget --no-check-certificate -O/tmp/lumberjack_${LUMBERJACK_VERSION}_amd64.deb https://github.com/lifegadget/lumberjack-builder/raw/master/resources/lumberjack_${LUMBERJACK_VERSION}_amd64.deb \
+	&& dpkg -i /tmp/lumberjack_${LUMBERJACK_VERSION}_amd64.deb \
+	&& rm /tmp/lumberjack_${LUMBERJACK_VERSION}_amd64.deb 
+COPY resources/logstash-forwarder.conf /app/conf/logstash-forwarder.conf
+# COPY resources/logstash-init /etc/init.d/lumberjack
+COPY resources/logstash-defaults /etc/default/lumberjack	
+	
 # Provide host ability to add server directives to configuration
 VOLUME ["/app/conf.d"]
 # Provide host ability to take over all aspects of configuration
@@ -194,5 +206,7 @@ VOLUME ["/app/sockets"]
 # Allow host to attach to log file directory
 VOLUME ["/app/logs"]
 
+COPY resources/docker-nginx /usr/local/bin/docker-nginx
+RUN chmod +x /usr/local/bin/docker-nginx
 EXPOSE 80
-ENTRYPOINT ["nginx"]
+ENTRYPOINT ["docker-nginx"]
