@@ -12,9 +12,21 @@ function logIt() {
 	facility_label="user-level"
 	facility=1
 	echo "{ \"timestamp\": \"$timestamp\", \"host\": \"${hostname}\", \"server_software\": [], \"file\": \"$logFile\", \"facility_label\": \"${facility_label}\", \"severity\":\"$severity\", \"message\": \"$1\" }" >> $logFile
+	echo $1;
 }
 
-# service rsyslog start
-/opt/lumberjack/bin/lumberjack -config /app/conf/logstash-forwarder.conf &
-logIt "Lumberjack listener on nginx started"
+# I might be a Lumberjack
+if [ -z "$LS_CERT" ];
+	echo "$LS_CERT" > /app/certs/server.crt
+	logIt "- Logstash certificate passed into run command, saving to container"
+fi
+if [ -f "/app/certs/server.key" ];then
+	logIt "- Found server.key in filesystem indicating that cert info passed in via --volumes-from option which is deprecated"
+fi
+# I'm a Lumberjack
+if [ -f "/app/certs/server.crt" ];then
+	/opt/lumberjack/bin/lumberjack -config /app/conf/logstash-forwarder.conf &
+	logIt "Lumberjack listener on nginx started"
+fi
+		
 exec /usr/local/nginx/sbin/nginx 
